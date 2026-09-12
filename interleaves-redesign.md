@@ -1,155 +1,148 @@
 # Interleaves — Redesign Design Document
-*Captured June 2026 — pre-coding planning session*
+*Captured June 2026 — updated during build*
 
 ---
 
-## Object Model
+## Object Model (as implemented, `interleaves_v2` DB)
 
-Three first-class objects. Use these names consistently throughout the UI.
+```js
+Score {
+  id, name, createdAt, order,
+  pages: [{ pageId, src, annotation }],  // annotation field unused (see Annotation Model below)
+  hasPassages,  // informational: has ≥1 passage ever been saved from this score
+  inPool        // behavioral: included in practice shuffle? user-toggleable
+}
+
+Passage {
+  id, sourceId,          // → Score.id
+  name, createdAt, order,
+  tier, weight, sessions,
+  compasSettings, measures,
+  pages: [{ pageId, practiceAnnotation }]  // pageId matches a Score page
+}
+```
+
+Two stores: `scores`, `passages`. `sessions` store deferred until history/SM-2 needed.
 
 ### Score
-A source document. Never practiced directly.
-- One PDF (single or multi-page), or
-- An assembled set of photos/images merged in Score Assembly
-- Stores: source file(s), page order, any prep adjustments (crop, rotate)
-- Has many Passages derived from it
-- `score.sourceId` is the parent reference Passages point back to
+A source document. Practiceable directly (page-by-page) until it has passages.
+- One PDF (imports as one Score, all pages intact) or one image (single-page Score)
+- Owns the actual page images (`src`)
+- `inPool`: controls shuffle inclusion, independent of `hasPassages` — user-toggleable via 🔀/⏸ badge on the sidebar header. Defaults to `true`, auto-flips to `false` the first time a passage is saved from it, but can be flipped back either direction any time.
 
 ### Passage
-A practice item derived from a Score. What gets shuffled and timed.
-- Linked to one or more Score pages via `passage.sourceId`
-- Stores: page reference(s), annotation layer (permanent — fingerings, corrections), practice layer (session circles/boxes, not copied on duplicate)
-- Single-page (common) or cross-page (two-tap sequential selection)
-- Has optional `compasSettings` (BPM, beats, accent pattern)
-- Has optional `measures` count (enables Blitz mode timing)
-- Has frequency weighting (−1/0/+1)
+A practice excerpt derived from a Score. What gets shuffled and timed.
+- References Score pages by `pageId` — never copies `src`
+- Single-page (common) or multi-page (built via "+ page" during Save Passage)
+- Has optional `compasSettings` (BPM, beats, accent pattern) and `measures` (enables Blitz mode)
+- Frequency weighting via `tier` (−1/0/+1) and `weight` (×1–×3, time multiplier)
 
-### Session
-A timed run through a set of Passages.
-- Stores: which Passages, shuffle mode, loop count, rest settings, duration
-- Future: session history, SM-2 spaced repetition weighting
+### Session *(future)*
+Not yet built. Deferred until spaced repetition / history is needed.
+
+---
+
+## Annotation Model — current state and next iteration
+
+**Built (current):** single layer, no mode toggle.
+- Marks on a **Score** page are transient — used only to circle a passage before hitting "Save passage." Navigating away without saving discards them. Nothing persists to `Score.pages[].annotation`.
+- Marks on a **Passage** page are permanent practice marks (`practiceAnnotation`), scoped to that one passage only.
+- Rationale: the earlier two-layer/mode-toggle design (score notes vs. passage marks, switched by a button) caused mode confusion — too easy to draw in the wrong layer without realizing it. Stripped down to one layer to remove the failure mode entirely, at the cost of losing permanent score-level annotation (fingerings etc.) for now.
+
+**Next iteration (not yet built):** scope-determined layers, no toggle needed.
+- Annotations drawn **on a Score** (not yet turned into a passage) are permanent and cascade to every Passage derived from that Score page.
+- Annotations drawn **on a Passage** are local to that passage only.
+- No mode switch required — the layer is implied by *where you are* (Score view vs. Passage view), which are already distinct places in the UI. This reintroduces two layers but avoids the earlier confusion because the split follows object type, not a stateful toggle.
+- Open question: editing a Score after passages exist would retroactively change what those passages display (e.g. updating a fingering). Likely desired, but needs a deliberate decision — possibly a re-sync action rather than automatic cascade, to avoid surprising the user mid-practice.
+
+---
+
+## Sidebar Structure (as implemented)
+
+Two sections:
+- **Scores** — collapsible headers, page-count + derived-passage-count shown, 🔀/⏸ pool toggle, page buttons (p.1, p.2…) for direct navigation, rename/delete
+- **Passages** — flat shuffled list, tier badge, weight picker, rename/delete, drag-to-reorder
+
+"Save passage" button floats bottom-right of canvas, visible only when a Score page is active.
 
 ---
 
 ## Workflow Phases
 
-Linear but not locked — user can move backward freely.
-
 ```
-Import → Score Assembly → Prep → Practice Setup → Practice → (Review)
+Import → (Score Assembly if needed) → Practice / Save Passage (interleaved, not sequential)
 ```
 
-### 1. Import
-**Goal:** get files into the app with minimum friction.
+Practice Setup is **not a separate mandatory phase** — user can practice a Score immediately on import, and save passages opportunistically while practicing or browsing, in any order. This was a deliberate simplification from the original linear-phase model: phases are available, not required.
 
-- Single **Import** button opens the Import Window
-- Import Window stays open; user accumulates items before committing
-- Two re-triggerable buttons inside the window: **Add Files** and **Camera**
-- Each addition appears as a thumbnail row (preview + editable name)
-- Name field is optional at this stage — naming can be deferred to Prep
-- **Named capture session**: before first camera shot, app optionally prompts for piece name → subsequent photos auto-append *pg. 1, pg. 2...* — simplifies Score Assembly later
-- Single **Import** button inside window commits all pending items at once
-- PDFs: auto-detected as multi-page, page count pre-populated
-- Platform note: iOS and Android both return one photo per camera invocation (platform ceiling for web apps). Camera button must be easy to re-tap. Capacitor native wrap unlocks continuous camera session — a paid-tier differentiator.
+### 1. Import — *implemented*
+- Single **Import** button opens a persistent window; user accumulates files/photos before one commit
+- Camera and file-picker buttons both re-triggerable without closing the window
+- Named capture session: prompts for piece name before first camera shot in a session, auto-labels subsequent pages `pg.2`, `pg.3`…
+- PDFs import as one Score with all pages intact (not split into separate items)
+- Naming deferred to Score rename in sidebar if skipped at import
 
-### 2. Score Assembly *(optional)*
-**Goal:** merge multiple files that belong to one piece into a single Score.
+### 2. Score Assembly — *not yet built*
+Still needed for: multiple loose photos of one piece, or a PDF split across multiple files. Deferred — no current user need since single-PDF and single-photo cases (the common ones) are handled by Import directly.
 
-- Entered explicitly: select multiple items in library → **"Assemble into score"**
-- Skipped entirely for single PDFs and single photos
-- Interface: horizontal thumbnail strip, drag to reorder, confirm to merge
-- Handles: loose photos, split PDFs, mixed file types
-- Originals replaced by the assembled Score on confirm
-- Future possibility: smart auto-assembly from named capture sessions (parked — if resolved cleanly, makes this step unnecessary)
+### 3. Save Passage — *implemented*
+- User opens a Score page, circles/boxes a passage, hits **"Save passage"**
+- Panel: editable name (auto-suggested from Score name + count), "Continues on next page" checkbox → reveals +/− page controls for multi-page passages
+- On save: Score's `hasPassages` set true, `inPool` auto-set false (first time only) — user can toggle back via sidebar badge
+- Marks on the Score page are cleared after save (transient, not persisted — see Annotation Model)
 
-### 3. Prep
-**Goal:** clean up and structure the Score before marking passages.
+### 4. Practice — *implemented*
+- Pool = all Passages + all pages of Scores where `inPool !== false`
+- Shuffle-per-loop or full-shuffle, tier-weighted (−1→1 copy, 0→2 copies, +1→4 copies)
+- Timer is **per page**, not per Score (changed from earlier per-piece assumption)
+- Rest periods on by default, configurable interval/duration
 
-- Crop, rotate, brightness/contrast per page
-- Re-entry allowed; warning if annotations exist (prep changes are destructive to annotation layers)
-- PDF Scores: lightweight page reader (PDF.js), decide page groupings if needed
-- Assembled photo Scores: pages already ordered from Score Assembly
-
-### 4. Practice Setup
-**Goal:** define Passages from the Score.
-
-- User opens a Score, sees it as a readable document
-- Draws a circle or box around a passage
-- Hits **"Save passage"** — annotation saves as a new Passage, clears from Score view
-- Status line confirms ("Passage saved") — no badge on score for now, keeps score clean
-- Repeat for each passage in the Score, or switch to another Score
-- Cross-page passages: circle page 1 → **"Continues on next page"** → circle page 2 → **"Save passage"**
-- Each Passage stores `passage.sourceId` pointing back to its parent Score
-
-#### Annotation layers (Option A architecture)
-- **Layer 1 — Score annotations**: fingerings, corrections, bowings. Permanent. Copies on duplicate. Drawn in Score Edit mode.
-- **Layer 2 — Practice annotations**: circles, boxes indicating passages. Session-scoped. Does not copy. Drawn in Practice Setup mode.
-- Layer is determined by *which mode you're in* — no manual toggle needed. Mode = layer selector.
-
-### 5. Practice
-**Goal:** timed interleaved practice session.
-
-- Passages served in randomized order (shuffle-per-loop or full-shuffle)
-- Compás auto-configures on item serve if `passage.compasSettings` is set
-- Rest periods between passages (on by default)
-- Frequency weighting (−1/0/+1) affects shuffle queue
-
-#### Blitz Mode *(planned)*
+#### Blitz Mode *(planned, not built)*
 - Each Passage served once
 - Timer derived from musical data: `prep (2s) + count-in (1 measure) + play time (measures × beats ÷ BPM × 60)`
-- Requires `passage.compasSettings` and `passage.measures` to be set
-- Feels like performance simulation — distinct modality from repetition practice
-- Maps directly onto retrieval practice research (strong Bulletproof Musician angle)
+- Requires `compasSettings` and `measures` on the Passage
 
-### 6. Review *(future)*
-- Session history
-- SM-2 spaced repetition weighting
-- Repertoire structure view ("all passages from this piece")
+### 5. Review *(future)*
+- Session history, SM-2 spaced repetition, repertoire structure view
 
 ---
 
-## Compás Integration
-
-### Item association
+## Compás Integration *(planned, not built)*
 ```js
-passage.compasSettings = {
-  bpm: 112,
-  beats: 4,
-  accentPattern: [true, false, false, false]
-}
+passage.compasSettings = { bpm: 112, beats: 4, accentPattern: [true,false,false,false] }
 ```
-- Captured with one button during Practice Setup or Practice: **"Save Compás settings to this passage"**
-- On serve: Interleaves writes to `compas_apply` localStorage key; Compás reads and configures
-- If embedded: direct function call. If standalone: localStorage event bridge (pattern already established via shared `theme` key)
-
-### Prerequisites for Blitz mode
-- Count-in feature needed in Compás (1–2 measures before item starts)
-- `passage.measures` field — manual entry, stable data, one-time cost, lives in Prep or Practice Setup
+- One-button capture from Compás's current state onto the active Passage
+- Serve-time: Interleaves configures Compás automatically (embedded = direct call; standalone = `compas_apply` localStorage bridge, same pattern as shared `theme` key)
+- Compás should live in its own swappable `compas.js` file so the metronome can be upgraded independently of Interleaves — architecture decision made, not yet executed (Compás is still inline in the current build)
 
 ---
 
-## Key Decisions Made
+## Key Decisions Log
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| File copies | One copy per piece, virtual layers | No more duplicate confusion |
-| Multi-page | Score Assembly module, not grouping | Cleaner separation of concerns |
-| Annotation confusion | Mode determines layer, no toggle | "Almost invisible" per design philosophy |
-| Import UX | Batch window, single commit | Reduces confusion between picker and trigger |
-| Naming | Deferred to Prep, optional in Import | Keeps capture flow fast |
-| Cross-page passages | Two-tap sequential | Single-page flow stays frictionless |
-| Post-save feedback | Status line, not score badge | Clean score view |
+| File copies | One copy per piece, Score owns `src` | No duplicate confusion |
+| Multi-page PDFs | Import as one Score, not split pages | Matches how pieces are actually structured |
+| Score vs. Passage | Separate DB objects, separate sidebar sections | Scores = browse/read; Passages = shuffle/practice |
+| Practice pool inclusion | `inPool` flag, user-toggleable (🔀/⏸) | Auto behavior alone was ambiguous; explicit override needed |
+| Annotation layers | Collapsed to one layer (practice marks only) for now | Two-layer mode-toggle caused "wrong layer" errors |
+| Next annotation iteration | Scope by object (Score=permanent+cascades, Passage=local), no toggle | Removes mode confusion without losing permanent score notes |
+| Prep as mandatory phase | Rejected — practice/annotate interleaved freely | User should practice immediately, not gate on setup |
+| Timer unit | Per page | Simpler than per-piece for now |
+| Save Passage feedback | Toast + button always visible on Score pages | No score-view badge clutter |
 | Passage verb | "Save passage" | Short, musical, self-explanatory |
 
 ---
 
 ## Open Questions
 
-- **Smart auto-assembly**: can named capture sessions eliminate Score Assembly entirely? Parked — its own design problem.
-- **Score view in Prep**: needs to feel like reading, not file management. PDF.js pagination UI needs design attention.
-- **Compás architecture at merge time**: embedded vs. standalone affects how deep the integration can go. Decide before building Compás association feature.
-- **Migration path**: existing DB has groups and single-blob annotations. V4 migration needs to flatten groups → multi-page Scores, split annotation canvases into layers. Design schema before building.
+- **Scope-based annotation cascade**: does editing a Score's permanent layer retroactively update existing Passages automatically, or require an explicit re-sync? Needs a decision before building.
+- **Score Assembly**: still needed for multi-photo pieces; not yet built, no blocking need yet.
+- **Compás extraction**: move from inline to standalone `compas.js` — architecture agreed, not executed.
+- **`Score.pages[].annotation` field**: currently dead (nothing writes to it under the single-layer model). Either repurpose for the cascade iteration above, or remove from schema.
+- **Migration**: none needed — pre-release, clean-slate DB each schema change so far (`v1`→`v2`).
 
 ---
 
-*This document should be updated as decisions are made. Coding starts after open questions are resolved.*
+*Living document — reflects actual implementation state, not just plans. Update after each build session.*
+
