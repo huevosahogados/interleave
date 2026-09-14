@@ -25,7 +25,9 @@ html,body{height:100%;overflow:hidden;display:flex;flex-direction:column;backgro
 #topbar{height:var(--toolbar-h);padding:0 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--chrome);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 #topbar::-webkit-scrollbar{display:none;}
 #app-name{font-family:var(--font-serif);font-size:19px;color:rgba(255,255,255,0.5);letter-spacing:.03em;white-space:nowrap;pointer-events:none;}
+#build-tag{font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);white-space:nowrap;pointer-events:none;margin-left:6px;position:relative;top:6px;}
 html.eink #app-name{color:#aaa;}html.pure-white #app-name{color:#000;}
+html.eink #build-tag{color:#888;}html.pure-white #build-tag{color:#666;}
 .t-btn{background:none;border:1px solid rgba(255,255,255,0.25);border-radius:var(--radius);padding:0 11px;height:var(--btn-h);cursor:pointer;font-family:var(--font-mono);font-size:15px;color:rgba(255,255,255,0.8);white-space:nowrap;display:flex;align-items:center;}
 .t-btn:hover{background:rgba(255,255,255,0.15);color:#fff;}
 .t-btn.active{background:rgba(255,255,255,0.2);color:#fff;border-color:rgba(255,255,255,0.6);}
@@ -493,6 +495,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
 
 <div id="topbar">
   <span id="app-name">Interleaves</span>
+  <span id="build-tag"></span>
   <div class="t-sep"></div>
   <button class="t-btn" onclick="openImportWindow()">+ Import</button>
   <div class="t-sep"></div>
@@ -583,6 +586,10 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
         <button class="settings-nav-btn" onclick="exportLibrary()">Export library →</button>
         <button class="settings-nav-btn" onclick="document.getElementById('import-lib-input').click()">Import library →</button>
       </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">About</div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--ink3);" id="settings-build-line"></div>
     </div>
   </div>
   <div id="cards-panel">
@@ -984,6 +991,9 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
 <div id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
+// Bump this on every delivered build — displayed in the topbar and Settings
+// so Stuart can confirm which build is actually loaded on a given device.
+const BUILD_VERSION='2026-09-14a';
 // ── PDF.js ────────────────────────────────────────────────────────────────────
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -2479,6 +2489,8 @@ function updateSeBrushPreview(){
 
 openDB().then(async()=>{
   initTheme();initDragContainer();initDropZone();
+  document.getElementById('build-tag').textContent='v'+BUILD_VERSION;
+  document.getElementById('settings-build-line').textContent='Interleaves build '+BUILD_VERSION;
   scores=await dbGetAll(S_SCORES);scores.sort((a,b)=>(a.order||0)-(b.order||0));
   passages=await dbGetAll(S_PASSAGES);passages.sort((a,b)=>(a.order||0)-(b.order||0));
   await initRestCards();
