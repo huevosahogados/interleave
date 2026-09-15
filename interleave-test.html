@@ -6,6 +6,12 @@
 <title>Interleaves</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<!-- Assumes the Compás repo is named "Compas" — served at stuartzobel.com/Compas/ via
+     the same GitHub Pages domain-inheritance that put Interleave at /Interleave/.
+     Root-relative (leading /) so this resolves correctly regardless of which
+     repo's URL the page loading it lives under. Confirm the exact repo name
+     and fix this path if it differs — it will 404 silently otherwise. -->
+<link rel="stylesheet" href="/Compas/compas.css">
 <style>
 :root {
   --bg:#FFFFFF;--bg2:#F0F6FF;--bg3:#DFF0FA;--chrome:#2A6496;--ink:#1A2B3C;
@@ -342,37 +348,6 @@ html.eink #rest-breathe-label{color:#444;}html.eink #rest-breathe-count{color:#0
 .to-btn.primary{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.6);color:#fff;}
 .to-btn.primary:hover{background:rgba(255,255,255,0.35);}
 html.eink #text-overlay-controls{background:#222;}
-#metro-panel{display:none;position:fixed;bottom:20px;right:20px;width:260px;background:var(--chrome);border:1px solid rgba(255,255,255,0.2);border-radius:12px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,0.3);flex-direction:column;overflow:hidden;user-select:none;-webkit-user-select:none;}
-#metro-panel.show{display:flex;}
-#metro-header{padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);gap:8px;cursor:grab;}
-#metro-header:active{cursor:grabbing;}
-#metro-title{font-family:var(--font-mono);font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:.08em;text-transform:uppercase;flex-shrink:0;}
-#metro-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:15px;cursor:pointer;padding:4px 6px;}
-#metro-close:hover{color:#fff;}
-#metro-body{padding:16px;display:flex;flex-direction:column;align-items:center;gap:14px;}
-#metro-bpm-display{display:flex;align-items:baseline;gap:4px;flex:1;justify-content:center;}
-#metro-bpm{font-family:var(--font-mono);font-size:26px;font-weight:600;color:rgba(255,255,255,0.95);width:60px;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.3);text-align:center;outline:none;-moz-appearance:textfield;user-select:text;-webkit-user-select:text;pointer-events:auto;cursor:text;}
-#metro-bpm::-webkit-outer-spin-button,#metro-bpm::-webkit-inner-spin-button{-webkit-appearance:none;}
-#metro-bpm:focus{border-bottom-color:rgba(255,255,255,0.8);}
-#metro-bpm-unit{font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:.1em;text-transform:uppercase;}
-#metro-dial-wrap{position:relative;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer;user-select:none;-webkit-user-select:none;}
-#metro-dial{display:block;user-select:none;-webkit-user-select:none;}
-#metro-beats-row{display:flex;width:100%;}
-#metro-beat-count-btns{display:flex;gap:4px;width:100%;}
-.metro-count-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:var(--radius);flex:1;height:32px;cursor:pointer;font-family:var(--font-mono);font-size:14px;color:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;}
-.metro-count-btn:hover{background:rgba(255,255,255,0.15);color:#fff;}
-.metro-count-btn.active{background:rgba(255,255,255,0.22);color:#fff;border-color:rgba(255,255,255,0.6);}
-#metro-accent-row{display:flex;gap:5px;justify-content:center;min-height:26px;align-items:center;}
-.metro-accent-btn{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);cursor:pointer;font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;}
-.metro-accent-btn:hover{background:rgba(255,255,255,0.18);}
-.metro-accent-btn.beat1{background:rgba(255,255,255,0.9);color:#000;border-color:#fff;cursor:default;}
-.metro-accent-btn.accented{background:rgba(255,255,255,0.45);color:#fff;border-color:rgba(255,255,255,0.8);}
-#metro-controls{display:flex;gap:8px;width:100%;}
-#metro-save-passage-btn{width:100%;height:36px;border:1px solid rgba(255,255,255,0.25);border-radius:var(--radius);background:none;cursor:pointer;font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,0.75);}
-#metro-save-passage-btn:hover{background:rgba(255,255,255,0.12);color:#fff;}
-#metro-tap,#metro-start{flex:1;height:40px;border:1px solid rgba(255,255,255,0.25);border-radius:var(--radius);background:none;cursor:pointer;font-family:var(--font-mono);font-size:15px;color:rgba(255,255,255,0.85);}
-#metro-tap:hover,#metro-start:hover{background:rgba(255,255,255,0.12);color:#fff;}
-#metro-start.running{background:rgba(255,255,255,0.2);color:#fff;border-color:rgba(255,255,255,0.6);}
 html.eink #metro-panel{background:#fff;border-color:#999;}
 html.eink #metro-title{color:#666;}html.eink #metro-close{color:#666;}
 html.eink #metro-bpm{color:#000;}html.eink #metro-bpm-unit{color:#666;}
@@ -714,61 +689,8 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
   <input type="color" id="color-pick" value="#1a1814" oninput="brushColor=this.value;updateBrushPreview()">
 </div>
 
-<!-- Compás metronome panel -->
-<div id="metro-panel">
-  <div id="metro-header" title="drag to move">
-    <span id="metro-title">Compás</span>
-    <div id="metro-bpm-display">
-      <input id="metro-bpm" type="number" min="40" max="208" value="120"
-             onchange="setMetroBPMFromInput(+this.value)" oninput="setMetroBPMFromInput(+this.value)"
-             onfocus="this.select()" onclick="this.select()">
-      <span id="metro-bpm-unit">bpm</span>
-    </div>
-    <button id="metro-close" onclick="toggleMetronomePanel()">✕</button>
-  </div>
-  <div id="metro-body">
-    <div id="metro-dial-wrap">
-      <svg id="metro-dial" viewBox="0 0 200 200" width="224" height="224">
-        <circle cx="100" cy="100" r="82" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="42.0" y1="158.0" x2="47.7" y2="152.3" stroke="rgba(255,255,255,0.9)" stroke-width="2.5"/>
-        <line x1="24.2" y1="68.6"  x2="31.6" y2="71.7"  stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-        <line x1="100"  y1="18"    x2="100"  y2="26"    stroke="rgba(255,255,255,0.9)" stroke-width="2.5"/>
-        <line x1="175.8" y1="68.6" x2="168.4" y2="71.7" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
-        <line x1="158.0" y1="158.0" x2="152.3" y2="152.3" stroke="rgba(255,255,255,0.9)" stroke-width="2.5"/>
-        <g id="metro-small-ticks"></g>
-        <text x="57.6" y="145.9" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)" font-family="monospace">40</text>
-        <text x="44.6" y="80.5"  text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)" font-family="monospace">82</text>
-        <text x="100"  y="43.5"  text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)" font-family="monospace">124</text>
-        <text x="155.4" y="80.5" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)" font-family="monospace">166</text>
-        <text x="142.4" y="145.9" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.85)" font-family="monospace">208</text>
-        <line id="metro-dial-needle" x1="100" y1="100" x2="100" y2="22"
-          stroke="rgba(255,255,255,0.95)" stroke-width="2.5" stroke-linecap="round"
-          transform="rotate(-135 100 100)"/>
-        <circle cx="100" cy="100" r="4" fill="rgba(255,255,255,0.9)"/>
-      </svg>
-    </div>
-    <div id="metro-beats-row">
-      <div id="metro-beat-count-btns">
-        <button class="metro-count-btn" onclick="toggleMetroBeats(2)">2</button>
-        <button class="metro-count-btn" onclick="toggleMetroBeats(3)">3</button>
-        <button class="metro-count-btn active" onclick="toggleMetroBeats(4)">4</button>
-        <button class="metro-count-btn" onclick="toggleMetroBeats(5)">5</button>
-        <button class="metro-count-btn" onclick="toggleMetroBeats(6)">6</button>
-        <button class="metro-count-btn" onclick="toggleMetroBeats(7)">7</button>
-      </div>
-    </div>
-    <div id="metro-accent-row"></div>
-    <div id="metro-controls">
-      <button id="metro-tap" onclick="metroTap()">tap</button>
-      <button id="metro-start" onclick="toggleMetronome()">start</button>
-    </div>
-    <div id="metro-passage-row" style="display:none;width:100%;">
-      <button id="metro-save-passage-btn" onclick="saveCompasToPassage()">
-        💾 Save Compás to <span id="metro-passage-name">passage</span>
-      </button>
-    </div>
-  </div>
-</div>
+<!-- Compás metronome panel — injected by Compas.mount() at boot -->
+<div id="metro-mount"></div>
 
 <!-- Main layout -->
 <div id="app">
@@ -991,10 +913,11 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
 
 <div id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="/Compas/compas.js"></script>
 <script>
 // Bump this on every delivered build — displayed in the topbar and Settings
 // so Stuart can confirm which build is actually loaded on a given device.
-const BUILD_VERSION='2026-09-14d';
+const BUILD_VERSION='2026-09-14f';
 // ── PDF.js ────────────────────────────────────────────────────────────────────
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -1970,7 +1893,7 @@ function showPracticeItem(){
   // Auto-configure Compás if this passage has saved tempo settings
   if(!entry._isScorePage){
     const p=getPassage(entry.id);
-    if(p&&p.compasSettings)applyCompasSettings(p.compasSettings);
+    if(p&&p.compasSettings)Compas.loadSettings(p.compasSettings);
   }
   updateMetroPassageRow();
 }
@@ -2045,7 +1968,7 @@ function nextItem(){
   clearInterval(timerTick);
   const entry=queue[qIdx];
   if(entry&&!entry._isScorePage){const p=getPassage(entry.id);if(p){p.sessions=(p.sessions||0)+1;dbPut(S_PASSAGES,p);}}
-  if(metroRunning)stopMetronome();
+  if(Compas.isRunning())Compas.stop();
   if(loopBoundaries[currentLoop]===qIdx+1){
     currentLoop++;toast('Loop '+currentLoop+' complete');
     if(!isIndefinite&&currentLoop>=maxLoops){toast('Session complete!');setTimeout(()=>endSession(),1500);return;}
@@ -2103,7 +2026,7 @@ function continuePracticing(){
 
 function endSession(){
   document.getElementById('back-to-practice-btn').style.display='none';
-  clearInterval(timerTick);clearInterval(restTimerTick);clearInterval(breatheTick);isPaused=false;currentLoop=0;itemsSinceRest=0;loopBoundaries=[];if(metroRunning)stopMetronome();
+  clearInterval(timerTick);clearInterval(restTimerTick);clearInterval(breatheTick);isPaused=false;currentLoop=0;itemsSinceRest=0;loopBoundaries=[];if(Compas.isRunning())Compas.stop();
   document.getElementById('rest-screen').classList.remove('show');document.getElementById('practice-screen').classList.remove('show');
   const tb=document.getElementById('p-draw-toolbar');tb.classList.remove('show','dragging');tb.style.left='50%';tb.style.top='';tb.style.bottom='16px';
   document.getElementById('p-pause-overlay').classList.remove('show');renderSidebar();updateStatus();
@@ -2266,14 +2189,23 @@ function startRest(){itemsSinceRest=0;restTotal=parseInt(document.getElementById
 function updateRestTimerDisplay(){const m=Math.floor(restLeft/60).toString().padStart(2,'0'),s=(restLeft%60).toString().padStart(2,'0');document.getElementById('rest-timer').textContent=m+':'+s;}
 function endRest(){clearInterval(restTimerTick);clearInterval(breatheTick);clearInterval(window._breatheCountTick);document.getElementById('rest-screen').classList.remove('show');document.getElementById('rest-breathe-circle').classList.remove('expand');chimeAndSignal();showPracticeItem();startTimer();}
 function startBreathe(){let phase=0,cd=4;clearInterval(breatheTick);const circle=document.getElementById('rest-breathe-circle'),label=document.getElementById('rest-breathe-label'),count=document.getElementById('rest-breathe-count'),phases=['breathe in','hold','breathe out','hold'];function step(){circle.classList.toggle('expand',phase===0||phase===1);label.textContent=phases[phase];cd=4;count.textContent=cd;phase=(phase+1)%4;}step();breatheTick=setInterval(step,4000);const ct=setInterval(()=>{cd--;if(cd>0&&count)count.textContent=cd;},1000);window._breatheCountTick=ct;}
-function chimeAndSignal(){const flash=document.getElementById('rest-flash');if(flash){flash.classList.add('pop');setTimeout(()=>flash.classList.remove('pop'),300);}if(navigator.vibrate)navigator.vibrate([150,80,150]);try{const ctx=getMetroAudioCtx();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='sine';osc.frequency.setValueAtTime(523,ctx.currentTime);osc.frequency.setValueAtTime(659,ctx.currentTime+0.18);gain.gain.setValueAtTime(0.4,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.7);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.75);}catch(e){}}
+function chimeAndSignal(){const flash=document.getElementById('rest-flash');if(flash){flash.classList.add('pop');setTimeout(()=>flash.classList.remove('pop'),300);}if(navigator.vibrate)navigator.vibrate([150,80,150]);try{const ctx=Compas.getAudioContext();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.type='sine';osc.frequency.setValueAtTime(523,ctx.currentTime);osc.frequency.setValueAtTime(659,ctx.currentTime+0.18);gain.gain.setValueAtTime(0.4,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.7);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.75);}catch(e){}}
 
-// ── Metronome ─────────────────────────────────────────────────────────────────
-let metroAudioCtx=null,metroBPM=120,metroBeatsPerBar=4,metroRunning=false,metroCurrentBeat=0,metroNextNoteTime=0,metroScheduleTimer=null;
-let metroAccents=[true,false,false,false],metroFreeClick=false;
-let metroBeat1Mode='downbeat'; // 'downbeat' | 'accent' | 'plain' — click beat-1 button to cycle
-const METRO_LOOKAHEAD=0.1,METRO_INTERVAL=25,METRO_MIN_BPM=40,METRO_MAX_BPM=208;
 // ── Compás ↔ Passage association ────────────────────────────────────────────
+// Everything below is Interleaves-specific glue over the shared Compás module
+// (compas.js) — it knows about Passages/DB; the module itself knows neither.
+let compasSlot=null;
+
+function initCompas(){
+  const{slotElement}=Compas.mount(document.getElementById('metro-mount'),{mode:'panel'});
+  compasSlot=slotElement;
+  const btn=document.createElement('button');
+  btn.id='metro-save-passage-btn';btn.className='compas-slot-btn';
+  btn.innerHTML='💾 Save Compás to <span id="metro-passage-name">passage</span>';
+  btn.addEventListener('click',saveCompasToPassage);
+  compasSlot.appendChild(btn);
+}
+
 // Returns the Passage object relevant to the current context (editor or practice), or null.
 function getCompasContextPassage(){
   const practiceScreenShown=document.getElementById('practice-screen').classList.contains('show');
@@ -2287,115 +2219,24 @@ function getCompasContextPassage(){
 }
 
 function updateMetroPassageRow(){
-  const row=document.getElementById('metro-passage-row');
   const p=getCompasContextPassage();
   if(p){
-    row.style.display='block';
+    compasSlot.style.display='block';
     document.getElementById('metro-passage-name').textContent='"'+p.name+'"';
   } else {
-    row.style.display='none';
+    compasSlot.style.display='none';
   }
 }
 
 async function saveCompasToPassage(){
   const p=getCompasContextPassage();
   if(!p){toast('No passage in context');return;}
-  const panel=document.getElementById('metro-panel');
-  const panelPos=panel.classList.contains('show')?{left:parseInt(panel.style.left)||null,top:parseInt(panel.style.top)||null}:metroPanelPos;
-  p.compasSettings={bpm:metroBPM,beats:metroBeatsPerBar,accentPattern:metroAccents.slice(),beat1mode:metroBeat1Mode,freeClick:metroFreeClick,panelPos};
+  p.compasSettings=Compas.getSettings();
   await dbPut(S_PASSAGES,p);
   toast('Compás settings saved to "'+p.name+'"');
 }
 
-// Apply a passage's saved Compás settings (tempo, meter, accents, beat-1, panel position) to the live metronome (does not auto-start).
-function applyCompasSettings(settings){
-  if(!settings)return;
-  metroBPM=Math.max(METRO_MIN_BPM,Math.min(METRO_MAX_BPM,settings.bpm||120));
-  metroFreeClick=!!settings.freeClick;
-  metroBeat1Mode=settings.beat1mode||'downbeat';
-  if(!metroFreeClick&&settings.beats){
-    metroBeatsPerBar=settings.beats;
-    metroAccents=Array.isArray(settings.accentPattern)?settings.accentPattern.slice():metroAccents;
-  }
-  updateMetroBPMDisplay();
-  if(metroFreeClick){
-    document.querySelectorAll('.metro-count-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('metro-accent-row').innerHTML='';
-  } else {
-    document.querySelectorAll('.metro-count-btn').forEach(b=>b.classList.toggle('active',+b.textContent===metroBeatsPerBar));
-    renderAccentGrid();
-  }
-  if(settings.panelPos&&typeof settings.panelPos.left==='number'){
-    metroPanelPos=settings.panelPos;
-    if(document.getElementById('metro-panel').classList.contains('show'))applyMetroPanelPos();
-  }
-}
-
-function toggleMetronomePanel(){
-  const panel=document.getElementById('metro-panel');
-  const opening=!panel.classList.contains('show');
-  panel.classList.toggle('show');
-  if(opening)applyMetroPanelPos();
-  updateMetroPassageRow();
-}
-(function initMetroPanelDrag(){let dragging=false,startX,startY,origLeft,origTop;function gP(){return document.getElementById('metro-panel');}function startDrag(e){const header=document.getElementById('metro-header');const src=e.touches?e.touches[0]:e;if(!header.contains(e.target))return;if(e.target.closest('#metro-close')||e.target.closest('#metro-bpm'))return;e.preventDefault();dragging=true;const panel=gP();const rect=panel.getBoundingClientRect();panel.style.bottom='auto';panel.style.right='auto';panel.style.left=rect.left+'px';panel.style.top=rect.top+'px';origLeft=rect.left;origTop=rect.top;startX=src.clientX;startY=src.clientY;}function moveDrag(e){if(!dragging)return;e.preventDefault();const src=e.touches?e.touches[0]:e;const panel=gP();const newLeft=Math.max(0,Math.min(origLeft+src.clientX-startX,window.innerWidth-panel.offsetWidth));const newTop=Math.max(0,Math.min(origTop+src.clientY-startY,window.innerHeight-panel.offsetHeight));panel.style.left=newLeft+'px';panel.style.top=newTop+'px';}function endDrag(){if(dragging){dragging=false;const panel=gP();metroPanelPos={left:parseInt(panel.style.left)||0,top:parseInt(panel.style.top)||0};saveMetroSettings();}}document.addEventListener('mousedown',startDrag);document.addEventListener('mousemove',moveDrag);document.addEventListener('mouseup',endDrag);document.addEventListener('touchstart',startDrag,{passive:false});document.addEventListener('touchmove',moveDrag,{passive:false});document.addEventListener('touchend',endDrag);})();
-function getMetroAudioCtx(){if(!metroAudioCtx)metroAudioCtx=new(window.AudioContext||window.webkitAudioContext)();if(metroAudioCtx.state==='suspended')metroAudioCtx.resume();return metroAudioCtx;}
-function scheduleMetroBeat(beatNum,time){const ctx=getMetroAudioCtx();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);const isBeat1=!metroFreeClick&&beatNum===0&&metroBeat1Mode==='downbeat';const isAccent=!metroFreeClick&&beatNum===0?metroBeat1Mode==='accent':!metroFreeClick&&(metroAccents[beatNum]||false);if(isBeat1){const freq=1800,dur=0.5;osc.type='triangle';osc.frequency.setValueAtTime(freq,time);gain.gain.setValueAtTime(0.55,time);gain.gain.exponentialRampToValueAtTime(0.001,time+dur);osc.start(time);osc.stop(time+dur);const o2=ctx.createOscillator();const g2=ctx.createGain();o2.connect(g2);g2.connect(ctx.destination);o2.type='sine';o2.frequency.setValueAtTime(freq*2.76,time);g2.gain.setValueAtTime(0.18,time);g2.gain.exponentialRampToValueAtTime(0.001,time+dur*0.4);o2.start(time);o2.stop(time+dur*0.4);}else if(isAccent){osc.type='sine';osc.frequency.setValueAtTime(1320,time);gain.gain.setValueAtTime(0.35,time);gain.gain.exponentialRampToValueAtTime(0.001,time+0.04);osc.start(time);osc.stop(time+0.05);}else{osc.type='sine';osc.frequency.setValueAtTime(880,time);gain.gain.setValueAtTime(0.3,time);gain.gain.exponentialRampToValueAtTime(0.001,time+0.04);osc.start(time);osc.stop(time+0.05);}const delay=Math.max(0,(time-ctx.currentTime)*1000);setTimeout(()=>{if(!document.documentElement.classList.contains('eink')){const dots=document.querySelectorAll('.metro-accent-btn');if(dots[beatNum]){dots[beatNum].style.opacity='0.4';setTimeout(()=>{if(dots[beatNum])dots[beatNum].style.opacity='';},100);}}},delay);}
-function metroScheduler(){const ctx=getMetroAudioCtx();while(metroNextNoteTime<ctx.currentTime+METRO_LOOKAHEAD){scheduleMetroBeat(metroCurrentBeat,metroNextNoteTime);metroNextNoteTime+=60.0/metroBPM;if(metroFreeClick||metroBeatsPerBar===0)metroCurrentBeat=0;else metroCurrentBeat=(metroCurrentBeat+1)%metroBeatsPerBar;}}
-function toggleMetronome(){if(metroRunning)stopMetronome();else startMetronome();}
-function startMetronome(){const ctx=getMetroAudioCtx();metroRunning=true;metroCurrentBeat=0;metroNextNoteTime=ctx.currentTime+0.05;metroScheduleTimer=setInterval(metroScheduler,METRO_INTERVAL);document.getElementById('metro-start').textContent='stop';document.getElementById('metro-start').classList.add('running');}
-function stopMetronome(){metroRunning=false;clearInterval(metroScheduleTimer);document.getElementById('metro-start').textContent='start';document.getElementById('metro-start').classList.remove('running');}
-function toggleMetroBeats(n){const wasActive=metroBeatsPerBar===n&&!metroFreeClick;if(wasActive){metroFreeClick=true;metroBeatsPerBar=0;document.querySelectorAll('.metro-count-btn').forEach(b=>b.classList.remove('active'));document.getElementById('metro-accent-row').innerHTML='';saveMetroSettings();return;}metroFreeClick=false;setMetroBeats(n);}
-
-// ── Compás settings persistence (localStorage bridge — enables future passage↔Compás association) ──
-let metroPanelPos=null; // {left,top} in px, null = default corner position
-
-function saveMetroSettings(){
-  try{localStorage.setItem('compas_settings',JSON.stringify({bpm:metroBPM,beatsPerBar:metroBeatsPerBar,accents:metroAccents,freeClick:metroFreeClick,beat1mode:metroBeat1Mode,panelPos:metroPanelPos}));}catch(e){}
-}
-function loadMetroSettings(){
-  try{
-    const raw=localStorage.getItem('compas_settings');if(!raw)return;
-    const s=JSON.parse(raw);
-    if(s.bpm)metroBPM=Math.max(METRO_MIN_BPM,Math.min(METRO_MAX_BPM,s.bpm));
-    if(s.beatsPerBar)metroBeatsPerBar=s.beatsPerBar;
-    if(Array.isArray(s.accents))metroAccents=s.accents;
-    if(typeof s.freeClick==='boolean')metroFreeClick=s.freeClick;
-    if(s.beat1mode)metroBeat1Mode=s.beat1mode;
-    if(s.panelPos&&typeof s.panelPos.left==='number')metroPanelPos=s.panelPos;
-  }catch(e){}
-}
-function applyMetroPanelPos(){
-  if(!metroPanelPos)return;
-  const panel=document.getElementById('metro-panel');
-  const left=Math.max(0,Math.min(metroPanelPos.left,window.innerWidth-panel.offsetWidth));
-  const top=Math.max(0,Math.min(metroPanelPos.top,window.innerHeight-panel.offsetHeight));
-  panel.style.bottom='auto';panel.style.right='auto';
-  panel.style.left=left+'px';panel.style.top=top+'px';
-}
-function setMetroBeats(n){metroBeatsPerBar=n;metroFreeClick=false;const prev=metroAccents;metroAccents=Array.from({length:n},(_,i)=>i===0?true:(prev[i]||false));metroCurrentBeat=0;document.querySelectorAll('.metro-count-btn').forEach(b=>b.classList.toggle('active',+b.textContent===n));renderAccentGrid();saveMetroSettings();}
-function toggleAccent(beat){if(beat===0)return;metroAccents[beat]=!metroAccents[beat];renderAccentGrid();saveMetroSettings();}
-function renderAccentGrid(){const row=document.getElementById('metro-accent-row');row.innerHTML='';for(let i=0;i<metroBeatsPerBar;i++){const btn=document.createElement('button');if(i===0){btn.className='metro-accent-btn'+(metroBeat1Mode==='downbeat'?' beat1':metroBeat1Mode==='accent'?' accented':'');btn.textContent='1';btn.title='downbeat: click to cycle (downbeat → accent → plain)';btn.onclick=toggleMetroBeat1;}else{btn.className='metro-accent-btn'+(metroAccents[i]?' accented':'');btn.textContent=i+1;btn.onclick=()=>toggleAccent(i);}row.appendChild(btn);}}
-function toggleMetroBeat1(){metroBeat1Mode=metroBeat1Mode==='downbeat'?'accent':metroBeat1Mode==='accent'?'plain':'downbeat';renderAccentGrid();saveMetroSettings();}
-function updateMetroBPMDisplay(){const input=document.getElementById('metro-bpm');if(input&&document.activeElement!==input)input.value=metroBPM;const pct=(metroBPM-METRO_MIN_BPM)/(METRO_MAX_BPM-METRO_MIN_BPM);document.getElementById('metro-dial-needle').setAttribute('transform','rotate('+(pct*270-135)+' 100 100)');}
-function setMetroBPMFromInput(val){if(isNaN(val))return;metroBPM=Math.max(METRO_MIN_BPM,Math.min(METRO_MAX_BPM,Math.round(val)));updateMetroBPMDisplay();saveMetroSettings();}
-(function initMetroDial(){let dragging=false;function gD(){return document.getElementById('metro-dial-wrap');}function angleFromEvent(e){const dial=gD();if(!dial)return 0;const rect=dial.getBoundingClientRect();const src=e.touches?e.touches[0]:e;return Math.atan2(src.clientY-rect.top-rect.height/2,src.clientX-rect.left-rect.width/2);}function bpmFromAngle(angle){let deg=angle*180/Math.PI;let sweep=((deg+90+360)%360-225+360)%360;if(sweep>270)sweep=sweep>315?0:270;return Math.round(METRO_MIN_BPM+(sweep/270)*(METRO_MAX_BPM-METRO_MIN_BPM));}document.addEventListener('mousedown',e=>{const d=gD();if(d&&d.contains(e.target)){dragging=true;metroBPM=bpmFromAngle(angleFromEvent(e));updateMetroBPMDisplay();}});document.addEventListener('mousemove',e=>{if(!dragging)return;metroBPM=bpmFromAngle(angleFromEvent(e));updateMetroBPMDisplay();});document.addEventListener('mouseup',()=>{dragging=false;});document.addEventListener('touchstart',e=>{const d=gD();if(d&&d.contains(e.target)){dragging=true;metroBPM=bpmFromAngle(angleFromEvent(e));updateMetroBPMDisplay();}},{passive:true});document.addEventListener('touchmove',e=>{if(!dragging)return;metroBPM=bpmFromAngle(angleFromEvent(e));updateMetroBPMDisplay();},{passive:true});document.addEventListener('touchend',()=>{dragging=false;});})();
-let tapTimes=[];function metroTap(){const now=Date.now();if(tapTimes.length>0&&now-tapTimes[tapTimes.length-1]>2000)tapTimes=[];tapTimes.push(now);if(tapTimes.length>6)tapTimes.shift();if(tapTimes.length>=2){let ti=0;for(let i=1;i<tapTimes.length;i++)ti+=tapTimes[i]-tapTimes[i-1];metroBPM=Math.max(METRO_MIN_BPM,Math.min(METRO_MAX_BPM,Math.round(60000/(ti/(tapTimes.length-1)))));updateMetroBPMDisplay();}}
-function renderDialTicks(){const group=document.getElementById('metro-small-ticks');if(!group)return;const labeled=new Set([40,82,124,166,208]);let svg='';for(let bpm=40;bpm<=208;bpm+=2){if(labeled.has(bpm))continue;const pct=(bpm-METRO_MIN_BPM)/(METRO_MAX_BPM-METRO_MIN_BPM);const angle=(pct*270-135)*Math.PI/180;const x1=100+82*Math.sin(angle),y1=100-82*Math.cos(angle),x2=100+79*Math.sin(angle),y2=100-79*Math.cos(angle);svg+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>`;}group.innerHTML=svg;}
-setTimeout(()=>{
-  loadMetroSettings();
-  updateMetroBPMDisplay();
-  if(metroFreeClick){
-    document.querySelectorAll('.metro-count-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('metro-accent-row').innerHTML='';
-  } else {
-    document.querySelectorAll('.metro-count-btn').forEach(b=>b.classList.toggle('active',+b.textContent===metroBeatsPerBar));
-    renderAccentGrid();
-  }
-  renderDialTicks();
-},100);
-
-// ── Boot ──────────────────────────────────────────────────────────────────────
+function toggleMetronomePanel(){Compas.togglePanel();updateMetroPassageRow();}
 // ── Keyboard dismissal ────────────────────────────────────────────────────────
 // GO/Enter on the on-screen keyboard blurs number/text inputs (Compás BPM, timer, rest settings).
 // Inputs that already handle Enter (rename, name prompt) are skipped.
@@ -2563,7 +2404,7 @@ function updateSeBrushPreview(){
 }
 
 openDB().then(async()=>{
-  initTheme();initDragContainer();initDropZone();
+  initTheme();initDragContainer();initDropZone();initCompas();
   document.getElementById('build-tag').textContent='v'+BUILD_VERSION;
   document.getElementById('settings-build-line').textContent='Interleaves build '+BUILD_VERSION;
   scores=await dbGetAll(S_SCORES);scores.sort((a,b)=>(a.order||0)-(b.order||0));
