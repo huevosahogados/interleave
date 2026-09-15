@@ -516,7 +516,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
   <button class="t-btn" onclick="openScoreEdit()" title="Edit permanent score notes (fingerings, corrections)" id="prep-btn" style="display:none;">✎ Score Edit</button>
   <div id="passage-measures-wrap" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--ink2);font-family:var(--font-mono);flex-shrink:0;" title="Measures in this passage — used by Variable Tempo &amp; Blitz mode">
     <label for="passage-measures-input">Measures</label>
-    <input type="number" id="passage-measures-input" min="1" step="1" placeholder="—" onchange="updateActivePassageMeasures(this.value)"
+    <input type="number" id="passage-measures-input" min="1" step="1" placeholder="—" onchange="updateActivePassageMeasures(this.value)" onfocus="this.select()" onclick="this.select()"
       style="width:52px;padding:6px;border:1px solid var(--border2);border-radius:var(--radius);font-family:var(--font-mono);font-size:13px;background:var(--bg);color:var(--ink);">
   </div>
   <button class="t-btn" onclick="toggleMetronomePanel()">BPM</button>
@@ -543,12 +543,12 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div class="settings-row">
           <span class="settings-field-label">duration</span>
-          <input type="number" id="rest-dur" value="45" min="10" max="300" class="settings-input">
+          <input type="number" id="rest-dur" value="45" min="10" max="300" class="settings-input" onfocus="this.select()" onclick="this.select()">
           <span class="settings-unit">sec</span>
         </div>
         <div class="settings-row">
           <span class="settings-field-label">every</span>
-          <input type="number" id="rest-every" value="5" min="1" max="20" class="settings-input">
+          <input type="number" id="rest-every" value="5" min="1" max="20" class="settings-input" onfocus="this.select()" onclick="this.select()">
           <span class="settings-unit">items</span>
         </div>
         <div class="settings-row">
@@ -566,7 +566,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div class="settings-row">
           <span class="settings-field-label">loops</span>
-          <input type="number" id="loop-count" value="3" min="1" max="99" class="settings-input">
+          <input type="number" id="loop-count" value="3" min="1" max="99" class="settings-input" onfocus="this.select()" onclick="this.select()">
           <label class="settings-toggle" style="margin-left:6px;">
             <input type="checkbox" id="loop-indefinite"><span>indefinite</span>
           </label>
@@ -792,7 +792,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
     <div class="s-bottom">
       <div class="timer-row">
         <span>timer</span>
-        <input type="number" id="timer-input" value="120" min="5" max="3600">
+        <input type="number" id="timer-input" value="120" min="5" max="3600" onfocus="this.select()" onclick="this.select()">
         <span>sec / page</span>
       </div>
       <div class="order-row">
@@ -924,7 +924,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
     </div>
     <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);">
       <label for="sp-measures-input" style="flex-shrink:0;">Measures</label>
-      <input type="number" id="sp-measures-input" min="1" step="1" placeholder="optional"
+      <input type="number" id="sp-measures-input" min="1" step="1" placeholder="optional" onfocus="this.select()" onclick="this.select()"
         style="width:64px;padding:8px;border:1px solid var(--border2);border-radius:var(--radius);font-family:var(--font-mono);font-size:14px;background:var(--bg);color:var(--ink);">
       <span style="font-size:11px;color:var(--ink3);">for Variable Tempo &amp; Blitz</span>
     </div>
@@ -994,7 +994,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
 <script>
 // Bump this on every delivered build — displayed in the topbar and Settings
 // so Stuart can confirm which build is actually loaded on a given device.
-const BUILD_VERSION='2026-09-14b';
+const BUILD_VERSION='2026-09-14d';
 // ── PDF.js ────────────────────────────────────────────────────────────────────
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
