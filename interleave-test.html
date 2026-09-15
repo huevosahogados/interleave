@@ -6,12 +6,10 @@
 <title>Interleaves</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<!-- Assumes the Compás repo is named "Compas" — served at stuartzobel.com/Compas/ via
-     the same GitHub Pages domain-inheritance that put Interleave at /Interleave/.
+<!-- Compás repo: stuartzobel.com/compas/ via GitHub Pages domain-inheritance.
      Root-relative (leading /) so this resolves correctly regardless of which
-     repo's URL the page loading it lives under. Confirm the exact repo name
-     and fix this path if it differs — it will 404 silently otherwise. -->
-<link rel="stylesheet" href="/Compas/compas.css">
+     repo's page is loading it. -->
+<link rel="stylesheet" href="/compas/compas.css">
 <style>
 :root {
   --bg:#FFFFFF;--bg2:#F0F6FF;--bg3:#DFF0FA;--chrome:#2A6496;--ink:#1A2B3C;
@@ -913,11 +911,11 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
 
 <div id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="/Compas/compas.js"></script>
+<script src="/compas/compas.js"></script>
 <script>
 // Bump this on every delivered build — displayed in the topbar and Settings
 // so Stuart can confirm which build is actually loaded on a given device.
-const BUILD_VERSION='2026-09-14f';
+const BUILD_VERSION='2026-09-14g';
 // ── PDF.js ────────────────────────────────────────────────────────────────────
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -1893,7 +1891,7 @@ function showPracticeItem(){
   // Auto-configure Compás if this passage has saved tempo settings
   if(!entry._isScorePage){
     const p=getPassage(entry.id);
-    if(p&&p.compasSettings)Compas.loadSettings(p.compasSettings);
+    if(p&&p.compasSettings&&compasOK())Compas.loadSettings(p.compasSettings);
   }
   updateMetroPassageRow();
 }
@@ -1968,7 +1966,7 @@ function nextItem(){
   clearInterval(timerTick);
   const entry=queue[qIdx];
   if(entry&&!entry._isScorePage){const p=getPassage(entry.id);if(p){p.sessions=(p.sessions||0)+1;dbPut(S_PASSAGES,p);}}
-  if(Compas.isRunning())Compas.stop();
+  if(compasOK()&&Compas.isRunning())Compas.stop();
   if(loopBoundaries[currentLoop]===qIdx+1){
     currentLoop++;toast('Loop '+currentLoop+' complete');
     if(!isIndefinite&&currentLoop>=maxLoops){toast('Session complete!');setTimeout(()=>endSession(),1500);return;}
@@ -2026,7 +2024,7 @@ function continuePracticing(){
 
 function endSession(){
   document.getElementById('back-to-practice-btn').style.display='none';
-  clearInterval(timerTick);clearInterval(restTimerTick);clearInterval(breatheTick);isPaused=false;currentLoop=0;itemsSinceRest=0;loopBoundaries=[];if(Compas.isRunning())Compas.stop();
+  clearInterval(timerTick);clearInterval(restTimerTick);clearInterval(breatheTick);isPaused=false;currentLoop=0;itemsSinceRest=0;loopBoundaries=[];if(compasOK()&&Compas.isRunning())Compas.stop();
   document.getElementById('rest-screen').classList.remove('show');document.getElementById('practice-screen').classList.remove('show');
   const tb=document.getElementById('p-draw-toolbar');tb.classList.remove('show','dragging');tb.style.left='50%';tb.style.top='';tb.style.bottom='16px';
   document.getElementById('p-pause-overlay').classList.remove('show');renderSidebar();updateStatus();
@@ -2195,6 +2193,7 @@ function chimeAndSignal(){const flash=document.getElementById('rest-flash');if(f
 // Everything below is Interleaves-specific glue over the shared Compás module
 // (compas.js) — it knows about Passages/DB; the module itself knows neither.
 let compasSlot=null;
+function compasOK(){return typeof Compas!=='undefined';}
 
 function initCompas(){
   const{slotElement}=Compas.mount(document.getElementById('metro-mount'),{mode:'panel'});
@@ -2219,6 +2218,7 @@ function getCompasContextPassage(){
 }
 
 function updateMetroPassageRow(){
+  if(!compasSlot)return;
   const p=getCompasContextPassage();
   if(p){
     compasSlot.style.display='block';
@@ -2229,6 +2229,7 @@ function updateMetroPassageRow(){
 }
 
 async function saveCompasToPassage(){
+  if(!compasOK())return;
   const p=getCompasContextPassage();
   if(!p){toast('No passage in context');return;}
   p.compasSettings=Compas.getSettings();
@@ -2236,7 +2237,7 @@ async function saveCompasToPassage(){
   toast('Compás settings saved to "'+p.name+'"');
 }
 
-function toggleMetronomePanel(){Compas.togglePanel();updateMetroPassageRow();}
+function toggleMetronomePanel(){if(typeof Compas==='undefined'){toast('Metronome unavailable');return;}Compas.togglePanel();updateMetroPassageRow();}
 // ── Keyboard dismissal ────────────────────────────────────────────────────────
 // GO/Enter on the on-screen keyboard blurs number/text inputs (Compás BPM, timer, rest settings).
 // Inputs that already handle Enter (rename, name prompt) are skipped.
@@ -2404,7 +2405,14 @@ function updateSeBrushPreview(){
 }
 
 openDB().then(async()=>{
-  initTheme();initDragContainer();initDropZone();initCompas();
+  initTheme();initDragContainer();initDropZone();
+  try{
+    if(!compasOK())throw new Error('Compas module failed to load (check /compas/compas.js path)');
+    initCompas();
+  }catch(err){
+    console.error('Compás unavailable:',err);
+    toast('Metronome unavailable — check console');
+  }
   document.getElementById('build-tag').textContent='v'+BUILD_VERSION;
   document.getElementById('settings-build-line').textContent='Interleaves build '+BUILD_VERSION;
   scores=await dbGetAll(S_SCORES);scores.sort((a,b)=>(a.order||0)-(b.order||0));
