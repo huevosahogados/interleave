@@ -720,7 +720,8 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
     <span id="metro-title">Compás</span>
     <div id="metro-bpm-display">
       <input id="metro-bpm" type="number" min="40" max="208" value="120"
-             onchange="setMetroBPMFromInput(+this.value)" oninput="setMetroBPMFromInput(+this.value)">
+             onchange="setMetroBPMFromInput(+this.value)" oninput="setMetroBPMFromInput(+this.value)"
+             onfocus="this.select()" onclick="this.select()">
       <span id="metro-bpm-unit">bpm</span>
     </div>
     <button id="metro-close" onclick="toggleMetronomePanel()">✕</button>
@@ -993,7 +994,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
 <script>
 // Bump this on every delivered build — displayed in the topbar and Settings
 // so Stuart can confirm which build is actually loaded on a given device.
-const BUILD_VERSION='2026-09-14a';
+const BUILD_VERSION='2026-09-14b';
 // ── PDF.js ────────────────────────────────────────────────────────────────────
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -1044,7 +1045,7 @@ let reorderState=null,renameTargetId=null,renameTargetType=null;
 // Practice
 let queue=[],qIdx=0,timerTotal=120,timerLeft=0,timerTick=null,timerEndAt=0;
 let isPaused=false,maxLoops=3,isIndefinite=false,currentLoop=0;
-let loopBoundaries=[],itemsSinceRest=0,restEnabled=true;
+let loopBoundaries=[],sessionEnableSkip=false,itemsSinceRest=0,restEnabled=true;
 // Save-passage builder
 let spPages=[]; // [{scoreId,pageIdx}] being accumulated
 
@@ -1056,7 +1057,31 @@ const dropZone=document.getElementById('drop-zone');
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+let toastAutoTimer=null,toastDismissHandler=null;
+function clearStickyToastHandler(){
+  if(!toastDismissHandler)return;
+  document.removeEventListener('touchstart',toastDismissHandler,true);
+  document.removeEventListener('mousedown',toastDismissHandler,true);
+  toastDismissHandler=null;
+}
+function toast(msg,sticky){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastAutoTimer);clearStickyToastHandler();
+  if(sticky){
+    // Stays on screen until the user's next tap/click anywhere — e.g. a HEIC-rejected
+    // toast during import, which the old 2.5s timer could hide before it was read.
+    toastDismissHandler=()=>{el.classList.remove('show');clearStickyToastHandler();};
+    // Bind on the next tick so the very tap that triggered this toast doesn't instantly dismiss it
+    setTimeout(()=>{
+      if(!toastDismissHandler)return; // a newer toast already replaced this one
+      document.addEventListener('touchstart',toastDismissHandler,true);
+      document.addEventListener('mousedown',toastDismissHandler,true);
+    },0);
+  }else{
+    toastAutoTimer=setTimeout(()=>el.classList.remove('show'),2500);
+  }
+}
 function yieldFrame(){return new Promise(res=>requestAnimationFrame(res));}
 function showLoading(msg){document.getElementById('loading-msg').textContent=msg||'Loading…';document.getElementById('loading-overlay').classList.add('show');}
 function hideLoading(){document.getElementById('loading-overlay').classList.remove('show');}
@@ -1142,7 +1167,7 @@ function isHeic(file){return HEIC_TYPES.includes(file.type)||HEIC_EXT.some(ext=>
 
 async function addFilesToPending(files){
   for(const file of files){
-    if(isHeic(file)){toast('HEIC not supported — set the camera to "Most Compatible" or export as JPEG');continue;}
+    if(isHeic(file)){toast('HEIC not supported — set the camera to "Most Compatible" or export as JPEG',true);continue;}
     const allowed=ALLOWED_TYPES.includes(file.type)||ALLOWED_EXT.some(ext=>file.name.toLowerCase().endsWith(ext));
     if(!allowed){toast('Unsupported: '+file.name);continue;}
     const isPDF=file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf');
@@ -1691,6 +1716,33 @@ function setPracticeTier(dir){
   updateTierButtons(p.tier);
   const badge=document.querySelector(`.tier-badge[data-id="${p.id}"]`);
   if(badge){badge.textContent=p.tier===1?'↑':p.tier===-1?'↓':'·';badge.className='tier-badge'+(p.tier===1?' tier-more':p.tier===-1?' tier-less':'');}
+  applyTierChangeToCurrentLoop(p);
+}
+// Reshapes the REMAINING portion of the loop in progress so a tier change takes
+// effect immediately — the instance just viewed counts as this loop's "first" copy.
+// Loops after this one need no adjustment: they're built fresh from passage.tier
+// each time (tierExpandForLoop), so they already reflect whatever tier is current.
+function applyTierChangeToCurrentLoop(p){
+  const loopEnd=loopBoundaries[currentLoop];if(loopEnd===undefined)return; // indefinite mode before its first extension — nothing to reshape yet
+  const target=tierExpandForLoop([p],currentLoop,sessionEnableSkip).length; // desired total copies this loop, incl. the one just shown
+  let rest=queue.slice(qIdx+1,loopEnd);
+  const already=rest.filter(e=>e.id===p.id).length;
+  const need=target-1-already; // −1: the instance already shown counts toward target
+  if(need>0){
+    const insertCount=Math.min(need,rest.length); // cap to available spacers — never force a same-passage cluster; any shortfall rolls into next loop naturally
+    for(let i=0;i<insertCount;i++)rest.push({...p});
+  }else if(need<0){
+    let toRemove=-need;
+    for(let i=rest.length-1;i>=0&&toRemove>0;i--){if(rest[i].id===p.id){rest.splice(i,1);toRemove--;}}
+  }
+  if(need!==0){
+    rest=shuffleNoConsecutiveAvoidingLead(rest,p.id);
+    const delta=rest.length-(loopEnd-(qIdx+1));
+    queue.splice(qIdx+1,loopEnd-(qIdx+1),...rest);
+    for(let i=currentLoop;i<loopBoundaries.length;i++)loopBoundaries[i]+=delta;
+    const{loopNum,posInLoop,sizeOfLoop}=loopInfoForIdx(qIdx);
+    document.getElementById('p-counter').textContent=posInLoop+'/'+sizeOfLoop+'  loop '+loopNum+(isIndefinite?'':'/'+maxLoops);
+  }
 }
 function updateTierButtons(tier){const less=document.getElementById('p-tier-less'),more=document.getElementById('p-tier-more');if(!less||!more)return;less.style.display=tier===-1?'none':'inline-block';more.style.display=tier===1?'none':'inline-block';}
 
@@ -1830,10 +1882,33 @@ function tierExpandForLoop(pool,loopIndex,enableSkip){
   return out;
 }
 function shuffleNoConsecutive(arr){for(let a=0;a<50;a++){const s=shuffle(arr);let ok=true;for(let i=1;i<s.length;i++){if(s[i].id===s[i-1].id){ok=false;break;}}if(ok)return s;}const s=shuffle(arr);for(let i=1;i<s.length;i++){if(s[i].id===s[i-1].id){for(let j=i+1;j<s.length;j++){if(s[j].id!==s[i].id){[s[i],s[j]]=[s[j],s[i]];break;}}}}return s;}
+// Same guarantee as shuffleNoConsecutive, plus arr[0] must not match leadId (the item
+// just shown, immediately before this array in the queue). Falls back to plain
+// shuffleNoConsecutive's guarantee alone when both constraints can't be satisfied at
+// once — e.g. 2 of only 3 items share the lead id, which makes it mathematically
+// impossible to avoid both an immediate repeat AND an internal adjacency.
+function shuffleNoConsecutiveAvoidingLead(arr,leadId){
+  const isValid=s=>{
+    if(s.length&&s[0].id===leadId)return false;
+    for(let i=1;i<s.length;i++)if(s[i].id===s[i-1].id)return false;
+    return true;
+  };
+  for(let a=0;a<50;a++){const s=shuffle(arr);if(isValid(s))return s;}
+  let s=shuffleNoConsecutive(arr);
+  if(s.length&&s[0].id===leadId){
+    for(let j=1;j<s.length;j++){
+      const test=[...s];[test[0],test[j]]=[test[j],test[0]];
+      if(isValid(test)){s=test;break;}
+    }
+    // If no swap satisfies both, s stays as the internally-safe shuffle —
+    // the stronger guarantee (no adjacent duplicates anywhere) wins.
+  }
+  return s;
+}
 function buildShufflePerLoopQueue(pool,loops,enableSkip){
   const q=[];loopBoundaries=[];
   for(let loop=0;loop<loops;loop++){
-    let la=shuffle(tierExpandForLoop(pool,loop,enableSkip));
+    let la=shuffleNoConsecutive(tierExpandForLoop(pool,loop,enableSkip));
     if(q.length>0&&la.length>1&&la[0].id===q[q.length-1].id){const si=1+Math.floor(Math.random()*(la.length-1));[la[0],la[si]]=[la[si],la[0]];}
     q.push(...la);loopBoundaries.push(q.length);
   }
@@ -1870,12 +1945,12 @@ function startSession(){
   timerTotal=parseInt(document.getElementById('timer-input').value)||120;
   maxLoops=parseInt(document.getElementById('loop-count').value)||3;
   isIndefinite=document.getElementById('loop-indefinite').checked;
-  const enableSkip=isIndefinite||maxLoops>=2; // tier −1 only skips loops when there's room to
+  sessionEnableSkip=isIndefinite||maxLoops>=2; // tier −1 only skips loops when there's room to
   const loops=isIndefinite?1:maxLoops;
   const mode=document.getElementById('random-mode').value;
   if(orderMode==='manual'){queue=[];loopBoundaries=[];for(let i=0;i<loops;i++){queue.push(...pool);loopBoundaries.push(queue.length);}}
-  else if(mode==='full-shuffle')queue=buildFullShuffleQueue(pool,loops,enableSkip);
-  else queue=buildShufflePerLoopQueue(pool,loops,enableSkip);
+  else if(mode==='full-shuffle')queue=buildFullShuffleQueue(pool,loops,sessionEnableSkip);
+  else queue=buildShufflePerLoopQueue(pool,loops,sessionEnableSkip);
   qIdx=0;document.getElementById('practice-screen').classList.add('show');initToolbarDrag();showPracticeItem();
 }
 
@@ -1976,7 +2051,7 @@ function nextItem(){
     if(!isIndefinite&&currentLoop>=maxLoops){toast('Session complete!');setTimeout(()=>endSession(),1500);return;}
     if(isIndefinite){
       const pool=buildPracticePool();
-      let next=shuffle(tierExpandForLoop(pool,currentLoop,true));
+      let next=shuffleNoConsecutive(tierExpandForLoop(pool,currentLoop,sessionEnableSkip));
       if(queue.length>0&&next.length>1&&next[0].id===queue[queue.length-1].id){const si=1+Math.floor(Math.random()*(next.length-1));[next[0],next[si]]=[next[si],next[0]];}
       queue.push(...next);loopBoundaries.push(queue.length);
     }
