@@ -915,7 +915,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
 <script>
 // Bump this on every delivered build — displayed in the topbar and Settings
 // so Stuart can confirm which build is actually loaded on a given device.
-const BUILD_VERSION='2026-09-14g';
+const BUILD_VERSION='2026-09-15a';
 // ── PDF.js ────────────────────────────────────────────────────────────────────
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -1367,6 +1367,20 @@ function saveCurrentAnnotation(){
 }
 
 // ── Canvas ────────────────────────────────────────────────────────────────────
+function getCurrentScorePageAnnotation(){
+  if(activeType==='score'){
+    const score=getScore(activeId);if(!score)return null;
+    const page=score.pages[activePageIdx];return page?page.annotation:null;
+  }
+  if(activeType==='passage'){
+    const p=getPassage(activeId);if(!p)return null;
+    const pp=p.pages[activePageIdx];if(!pp)return null;
+    const score=getScore(p.sourceId);if(!score)return null;
+    const scorePage=score.pages.find(x=>x.pageId===pp.pageId);
+    return scorePage?scorePage.annotation:null;
+  }
+  return null;
+}
 function fitImage(){
   const area=canvasArea.getBoundingClientRect();
   const iw=sheetImg.naturalWidth,ih=sheetImg.naturalHeight;
@@ -1374,11 +1388,23 @@ function fitImage(){
   const w=Math.round(iw*scale),h=Math.round(ih*scale);
   const left=Math.round((area.width-w)/2),top=Math.round((area.height-h)/2);
   sheetImg.style.cssText=`display:block;width:${w}px;height:${h}px;left:${left}px;top:${top}px;position:absolute;`;
+  // Resizing a canvas element always wipes its pixel content, even when the
+  // dimensions end up unchanged — this is what was silently losing marks on
+  // device rotation. Snapshot whatever's currently drawn (an in-progress
+  // passage circle, or unsaved edits on an existing passage) and restore it,
+  // scaled to the new size, so rotating never loses work.
+  const snapshot=drawCanvas.toDataURL();
   drawCanvas.width=w;drawCanvas.height=h;
   drawCanvas.style.cssText=`left:${left}px;top:${top}px;position:absolute;`;
+  const img=new Image();
+  img.onload=()=>drawCanvas.getContext('2d').drawImage(img,0,0,w,h);
+  img.src=snapshot;
   const sac=document.getElementById('score-annot-canvas');
   sac.width=w;sac.height=h;
   sac.style.cssText=`left:${left}px;top:${top}px;position:absolute;pointer-events:none;`;
+  // sac is a read-only reference layer for already-SAVED annotation — no data
+  // at risk here, but resizing wipes it visually too, so re-render it fresh.
+  drawScoreAnnotRef(getCurrentScorePageAnnotation());
 }
 function clearScoreAnnotCanvas(){
   const sac=document.getElementById('score-annot-canvas');
@@ -1757,7 +1783,7 @@ function anyModalOpen(){
   if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable))return true;
   return document.getElementById('score-edit-screen').style.display!=='none';
 }
-setVH();window.addEventListener('resize',()=>{setVH();if(activeId&&!anyModalOpen())fitImage();if(seActive)fitSeImage();});
+setVH();window.addEventListener('resize',()=>{setVH();if(activeId&&!anyModalOpen())fitImage();if(seActive)fitSeImage();if(document.getElementById('practice-screen').classList.contains('show'))renderPracticeImage();});
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 function setTheme(t){const html=document.documentElement;html.classList.remove('eink','warm','clean-white','pure-white');if(t==='eink')html.classList.add('eink');if(t==='warm')html.classList.add('warm');if(t==='white')html.classList.add('clean-white');if(t==='purewhite')html.classList.add('pure-white');localStorage.setItem('theme',t);const pick=document.getElementById('theme-pick');if(pick)pick.value=t;}
@@ -2332,8 +2358,14 @@ function fitSeImage(){
   const w=Math.round(iw*scale),h=Math.round(ih*scale);
   const left=Math.round((area.width-w)/2),top=Math.round((area.height-h)/2);
   seSheetImg.style.cssText=`display:block;width:${w}px;height:${h}px;left:${left}px;top:${top}px;position:absolute;`;
+  // Same fix as fitImage — this one matters most: Score Edit explicitly promises
+  // nothing is lost until an explicit Save, so staged strokes must survive rotation.
+  const snapshot=seDrawCanvas.toDataURL();
   seDrawCanvas.width=w;seDrawCanvas.height=h;
   seDrawCanvas.style.cssText=`left:${left}px;top:${top}px;position:absolute;`;
+  const img=new Image();
+  img.onload=()=>seDrawCanvas.getContext('2d').drawImage(img,0,0,w,h);
+  img.src=snapshot;
 }
 
 function loadSeAnnotation(){
