@@ -357,6 +357,10 @@ html.eink .metro-accent-btn.beat1{background:#000;color:#fff;border-color:#000;}
 html.eink #metro-tap,html.eink #metro-start{background:#f0f0f0;border-color:#999;color:#000;}
 html.eink #metro-save-passage-btn{background:#f0f0f0;border-color:#999;color:#000;}
 html.eink #metro-start.running{background:#000;color:#fff;}
+html.eink #metro-vartempo-toggle{background:#f0f0f0;border-color:#999;color:#000;}
+html.eink #metro-vartempo-toggle.active{background:#000;color:#fff;border-color:#000;}
+html.eink #metro-vartempo-indicator{color:#ccc;}html.eink #metro-vartempo-indicator.active{color:#000;font-weight:700;}
+html.eink #metro-replength{background:#f0f0f0;border-color:#999;color:#000;}html.eink #metro-replength-row{color:#666;}
 html.eink #metro-dial circle{stroke:#ccc;}html.eink #metro-dial-needle{stroke:#000;}
 html.eink #metro-dial text{fill:#000!important;}html.eink #metro-dial line{stroke:#000!important;}
 .drag-over{border-color:var(--accent2)!important;background:#e8ede9!important;}
@@ -434,6 +438,10 @@ html.pure-white .metro-accent-btn.accented,html.pure-white .metro-accent-btn.bea
 html.pure-white #metro-tap,html.pure-white #metro-start{background:#fff;border:1.5px solid #000;color:#000;}
 html.pure-white #metro-start.running{background:#000;color:#fff;}
 html.pure-white #metro-save-passage-btn{background:#fff;border:1.5px solid #000;color:#000;}
+html.pure-white #metro-vartempo-toggle{background:#fff;border:1.5px solid #000;color:#000;}
+html.pure-white #metro-vartempo-toggle.active{background:#000;color:#fff;}
+html.pure-white #metro-vartempo-indicator{color:#ccc;}html.pure-white #metro-vartempo-indicator.active{color:#000;font-weight:700;}
+html.pure-white #metro-replength{background:#fff;border:1.5px solid #000;color:#000;}html.pure-white #metro-replength-row{color:#555;}
 html.pure-white #metro-dial circle{stroke:#ccc;}html.pure-white #metro-dial-needle{stroke:#000;}
 html.pure-white #metro-dial text{fill:#000!important;}html.pure-white #metro-dial line{stroke:#000!important;}
 html.pure-white #rest-screen{background:#fff;}
@@ -915,7 +923,7 @@ html.eink #se-tool-pick option{background:#fff;color:#000;}
 <script>
 // Bump this on every delivered build — displayed in the topbar and Settings
 // so Stuart can confirm which build is actually loaded on a given device.
-const BUILD_VERSION='2026-09-15a';
+const BUILD_VERSION='2026-09-15b';
 // ── PDF.js ────────────────────────────────────────────────────────────────────
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -1918,6 +1926,7 @@ function showPracticeItem(){
   if(!entry._isScorePage){
     const p=getPassage(entry.id);
     if(p&&p.compasSettings&&compasOK())Compas.loadSettings(p.compasSettings);
+    if(p&&p.measures&&compasOK())Compas.setRepLength(p.measures*(Compas.getSettings().beats||4));
   }
   updateMetroPassageRow();
 }
